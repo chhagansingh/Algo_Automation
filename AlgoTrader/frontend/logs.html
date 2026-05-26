@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlgoTrader — Daily Logs</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    .log-container { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 16px; margin-top: 12px; }
+    .log-line { font-family: "SF Mono", "Fira Code", monospace; font-size: 13px; line-height: 1.5; padding: 2px 0; border-bottom: 1px solid #1e293b; }
+    .log-line:last-child { border-bottom: none; }
+    .log-time { color: #94a3b8; }
+    .log-info { color: #22c55e; }
+    .log-warning { color: #f59e0b; }
+    .log-error { color: #ef4444; }
+    .log-debug { color: #64748b; }
+    .algo-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+    .algo-tab { padding: 8px 16px; border-radius: 6px; cursor: pointer; background: #1e293b; border: 1px solid #334155; }
+    .algo-tab.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .date-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+    .date-chip { padding: 4px 10px; border-radius: 4px; background: #1e293b; border: 1px solid #334155; cursor: pointer; font-size: 13px; }
+    .date-chip:hover, .date-chip.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+    .log-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .log-meta { color: #94a3b8; font-size: 13px; }
+    .empty-state { text-align: center; padding: 40px; color: #64748b; }
+  </style>
+</head>
+<body>
+  <nav class="topbar">
+    <div class="logo">AlgoTrader</div>
+    <div class="nav-links">
+      <a href="/">Dashboard</a>
+      <a href="/algo/algo1">RD-Straddle</a>
+      <a href="/algo/algo2">NTB-ScenB</a>
+      <a href="/algo/algo3">EMA-Cross</a>
+      <a href="/algo/algo4">Flow-NIFTY</a>
+      <a href="/algo/algo5">VIX-Rev</a>
+      <a href="/algo/algo10">Awesome-O</a>
+      <a href="/algo/algo13">Signal-Roll</a>
+      <a href="/algo/algo14">ML-RF</a>
+      <a href="/algo/algo15">Agg-Score</a>
+      <a href="/algo/algo16">Scalper-4/5</a>
+      <a href="/algo/algo17">Scalper-3/5</a>
+      <a href="/settings.html">Settings</a>
+      <a href="/logs.html" class="active">Logs</a>
+    </div>
+  </nav>
+
+  <main class="container">
+    <h1>Daily Algo Logs</h1>
+    <p class="subtitle">Complete audit trail — signal checks, trade entries/exits, no-trade reasons. Validate every CSV entry against market reality.</p>
+
+    <div class="algo-tabs" id="algoTabs"></div>
+
+    <div class="card">
+      <div class="log-header">
+        <h3 id="logTitle">Select an algo and date</h3>
+        <span class="log-meta" id="logMeta"></span>
+      </div>
+      <div class="date-list" id="dateList"></div>
+      <div class="log-container" id="logContent">
+        <div class="empty-state">Choose an algo tab and a date chip to view logs.</div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const ALGOS = {
+      algo1:  { name: "RD-Straddle",    color: "#64748b" },
+      algo2:  { name: "NTB-ScenB",      color: "#22c55e" },
+      algo3:  { name: "EMA-Cross",      color: "#f59e0b" },
+      algo4:  { name: "Flow-NIFTY",     color: "#a371f7" },
+      algo5:  { name: "VIX-Rev",        color: "#ff7b72" },
+      algo6:  { name: "SuperTrend",     color: "#79c0ff" },
+      algo7:  { name: "Dual-Thrust",    color: "#56d364" },
+      algo8:  { name: "CPMA",           color: "#ffa657" },
+      algo9:  { name: "Scanner",        color: "#d2a8ff" },
+      algo10: { name: "Awesome-O",      color: "#7ee787" },
+      algo11: { name: "Gamma-S",        color: "#f0883e" },
+      algo12: { name: "Dip-Rec",        color: "#8b949e" },
+      algo13: { name: "Signal-Roll",    color: "#2ea043" },
+      algo14: { name: "ML-RF",          color: "#a47ae3" },
+      algo15: { name: "Agg-Score",      color: "#e85d75" },
+      algo16: { name: "Scalper-4/5",    color: "#00bcd4" },
+      algo17: { name: "Scalper-3/5",    color: "#ff9800" },
+    };
+    let currentAlgo = "algo1";
+    let currentDate = null;
+
+    function renderTabs() {
+      const container = document.getElementById("algoTabs");
+      container.innerHTML = Object.entries(ALGOS).map(([id, meta]) =>
+        `<div class="algo-tab ${id === currentAlgo ? 'active' : ''}" onclick="switchAlgo('${id}')">${meta.name}</div>`
+      ).join("");
+    }
+
+    async function switchAlgo(id) {
+      currentAlgo = id;
+      currentDate = null;
+      renderTabs();
+      await loadDates();
+      document.getElementById("logContent").innerHTML = '<div class="empty-state">Select a date to view logs.</div>';
+      document.getElementById("logTitle").textContent = ALGOS[id].name + " — Select a date";
+      document.getElementById("logMeta").textContent = "";
+    }
+
+    async function loadDates() {
+      const res = await fetch(`/api/logs/${currentAlgo}/dates`);
+      const data = await res.json();
+      const container = document.getElementById("dateList");
+      if (!data.dates.length) {
+        container.innerHTML = '<span style="color:#64748b;font-size:13px;">No logs yet. Run a backtest or start paper trading.</span>';
+        return;
+      }
+      container.innerHTML = data.dates.map(d =>
+        `<div class="date-chip ${d === currentDate ? 'active' : ''}" onclick="loadLog('${d}')">${d}</div>`
+      ).join("");
+    }
+
+    async function loadLog(dateStr) {
+      currentDate = dateStr;
+      loadDates(); // refresh active chip
+      const res = await fetch(`/api/logs/${currentAlgo}/${dateStr}.log`);
+      const data = await res.json();
+      const container = document.getElementById("logContent");
+      document.getElementById("logTitle").textContent = `${ALGOS[currentAlgo].name} — ${dateStr}`;
+      document.getElementById("logMeta").textContent = data.exists ? `${data.lines.length} lines` : "No log file";
+
+      if (!data.exists || !data.lines.length) {
+        container.innerHTML = '<div class="empty-state">No log entries for this date.</div>';
+        return;
+      }
+
+      container.innerHTML = data.lines.map(line => {
+        let cls = "log-debug";
+        if (line.includes("INFO")) cls = "log-info";
+        else if (line.includes("WARNING")) cls = "log-warning";
+        else if (line.includes("ERROR")) cls = "log-error";
+        return `<div class="log-line ${cls}">${escapeHtml(line)}</div>`;
+      }).join("");
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    renderTabs();
+    loadDates();
+  </script>
+</body>
+</html>

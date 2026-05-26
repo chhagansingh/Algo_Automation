@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlgoTrader — Algo Detail</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ── Top Nav ── -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <a href="/" style="color:var(--text-muted);text-decoration:none;font-size:13px;margin-right:4px">← Back</a>
+    <div class="dot"></div>
+    AlgoTrader
+  </div>
+  <nav class="algo-tabs" style="border:none;padding:0;margin-left:12px;flex:1;overflow-x:auto">
+    <div class="algo-tab" onclick="window.location.href='/'">Dashboard</div>
+    <div class="algo-tab" id="tab_algo1" onclick="window.location.href='/algo/algo1'">RD-Straddle</div>
+    <div class="algo-tab" id="tab_algo2" onclick="window.location.href='/algo/algo2'">NTB-ScenB</div>
+    <div class="algo-tab" id="tab_algo3" onclick="window.location.href='/algo/algo3'">EMA-Cross</div>
+    <div class="algo-tab" id="tab_algo4" onclick="window.location.href='/algo/algo4'">Flow-NIFTY</div>
+    <div class="algo-tab" id="tab_algo5" onclick="window.location.href='/algo/algo5'">VIX-Rev</div>
+    <div class="algo-tab" id="tab_algo6" onclick="window.location.href='/algo/algo6'">SuperTrend</div>
+    <div class="algo-tab" id="tab_algo7" onclick="window.location.href='/algo/algo7'">Dual-Thrust</div>
+    <div class="algo-tab" id="tab_algo8" onclick="window.location.href='/algo/algo8'">CPMA</div>
+    <div class="algo-tab" id="tab_algo9" onclick="window.location.href='/algo/algo9'">Scanner</div>
+    <div class="algo-tab" id="tab_algo10" onclick="window.location.href='/algo/algo10'">Awesome-O</div>
+    <div class="algo-tab" id="tab_algo11" onclick="window.location.href='/algo/algo11'">Gamma-S</div>
+    <div class="algo-tab" id="tab_algo12" onclick="window.location.href='/algo/algo12'">Dip-Rec</div>
+    <div class="algo-tab" id="tab_algo13" onclick="window.location.href='/algo/algo13'">Sig-Roll</div>
+    <div class="algo-tab" id="tab_algo14" onclick="window.location.href='/algo/algo14'">ML-RF</div>
+    <div class="algo-tab" id="tab_algo15" onclick="window.location.href='/algo/algo15'">Agg-Score</div>
+    <div class="algo-tab" id="tab_algo16" onclick="window.location.href='/algo/algo16'">Scalper-4/5</div>
+    <div class="algo-tab" id="tab_algo17" onclick="window.location.href='/algo/algo17'">Scalper-3/5</div>
+    <div class="algo-tab" onclick="window.location.href='/settings.html'" style="margin-left:auto">Settings</div>
+    <div class="algo-tab" onclick="window.location.href='/logs.html'">Logs</div>
+  </nav>
+  <div class="topbar-live">
+    <span class="nifty-price" id="hdr_nifty">--</span>
+    <span class="vix" id="hdr_vix"></span>
+    <span style="font-size:10px;color:var(--text-dim)" id="hdr_time"></span>
+  </div>
+</header>
+
+<!-- ── Algo Detail Header ── -->
+<div class="algo-detail-header">
+  <div class="algo-icon" id="algo_icon">--</div>
+  <div>
+    <div class="algo-title" id="algo_title">Loading...</div>
+    <div class="algo-sub" id="algo_subtitle"></div>
+  </div>
+
+  <!-- Status badge -->
+  <div id="algo_status_badge" class="status-badge off" style="margin-left:4px">
+    <span style="width:6px;height:6px;border-radius:50%;background:currentColor;display:inline-block"></span>
+    OFF
+  </div>
+
+  <div class="header-right">
+    <div class="price-info">
+      <div class="nifty-big" id="detail_nifty">--</div>
+      <div class="vix-small">
+        <span id="detail_vix"></span>
+        <span id="detail_status_text" style="margin-left:8px"></span>
+      </div>
+    </div>
+    <div>
+      <div class="updated" id="algo_updated"></div>
+      <div id="paper_controls" style="margin-top:4px">
+        <!-- START/HALT buttons rendered by JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Main Layout ── -->
+<div class="layout">
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Phase 2 Signals — Live -->
+    <div class="card">
+      <div class="section-header">
+        <h3>Live Signals</h3>
+        <span class="live-badge"><span class="dot"></span> LIVE</span>
+      </div>
+      <div id="signal_cards">
+        <div class="text-muted" style="font-size:12px;padding:8px">Loading signals...</div>
+      </div>
+    </div>
+
+    <!-- Open Positions -->
+    <div class="card">
+      <div class="section-header">
+        <h3>Open Positions</h3>
+        <span id="open_count" class="text-muted" style="font-size:11px;margin-left:auto"></span>
+      </div>
+      <div id="open_positions">
+        <div class="empty-state" style="padding:16px">
+          <div class="empty-icon">&#9726;</div>
+          <div>No open position — waiting for entry signal</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Closed Trades -->
+    <div class="card">
+      <div class="section-header">
+        <h3>Closed Trades</h3>
+        <span id="trades_count" class="text-muted" style="font-size:11px;margin-left:auto"></span>
+      </div>
+      <div id="closed_trades">
+        <div style="padding:16px;text-align:center"><div class="spinner"></div></div>
+      </div>
+      <div id="trades_pagination"></div>
+    </div>
+
+    <!-- Backtest Panel -->
+    <div id="algo_backtest" style="margin-top:4px"></div>
+
+  </div><!-- /main-content -->
+
+  <!-- Sidebar (fixed right) -->
+  <div class="sidebar">
+
+    <!-- P&L Summary -->
+    <div class="card">
+      <div class="card-title">P&L SUMMARY</div>
+      <div id="pnl_summary">
+        <div class="pnl-summary-grid">
+          <div class="pnl-card"><div class="period">1 YEAR</div><div class="pnl-pct text-muted">—</div></div>
+          <div class="pnl-card"><div class="period">6 MONTHS</div><div class="pnl-pct text-muted">—</div></div>
+          <div class="pnl-card"><div class="period">3 MONTHS</div><div class="pnl-pct text-muted">—</div></div>
+          <div class="pnl-card"><div class="period">1 MONTH</div><div class="pnl-pct text-muted">—</div></div>
+          <div class="pnl-card today"><div class="period">TODAY</div><div class="pnl-pct">₹0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Portfolio Exposure + Status -->
+    <div class="card">
+      <div class="card-title">PORTFOLIO EXPOSURE</div>
+      <div id="portfolio_exposure">
+        <div class="exposure-grid">
+          <div class="exposure-item"><div class="e-label">Daily P&L</div><div class="e-value">₹0</div></div>
+          <div class="exposure-item"><div class="e-label">Positions</div><div class="e-value">0</div></div>
+          <div class="exposure-item"><div class="e-label">At Risk</div><div class="e-value text-orange">0%</div></div>
+        </div>
+        <div style="margin-top:8px">
+          <div class="status-bar halted"></div>
+          <div style="font-size:11px;color:var(--text-dim);margin-top:4px">INACTIVE</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="card">
+      <div class="card-title" id="cal_title">CALENDAR</div>
+      <div id="algo_calendar"></div>
+    </div>
+
+  </div><!-- /sidebar -->
+
+</div><!-- /layout -->
+
+<!-- Date Drawer (right panel for date click) -->
+<div class="date-drawer-overlay" id="date_drawer_overlay" onclick="closeDateDrawer()"></div>
+<div class="date-drawer" id="date_drawer">
+  <div class="date-drawer-header">
+    <div class="d-title" id="drawer_title">—</div>
+    <button class="date-drawer-close" onclick="closeDateDrawer()">✕</button>
+  </div>
+  <div id="drawer_body"></div>
+</div>
+
+<script src="/static/js/calendar.js"></script>
+<script src="/static/js/charts.js"></script>
+<script src="/static/js/backtest.js"></script>
+<script src="/static/js/algo_detail.js"></script>
+
+<script>
+// Set active tab + algo header based on URL
+document.addEventListener('DOMContentLoaded', () => {
+  const pathParts = window.location.pathname.split('/');
+  const algoId = pathParts[pathParts.length - 1] || 'algo3';
+  const tabEl = document.getElementById('tab_' + algoId);
+  if (tabEl) tabEl.classList.add('active');
+
+  const algoMeta = {
+    algo1:  { icon: 'RS', name: 'RD-Straddle [58%WR · Stable]', sub: 'Binary Short Straddle — Daily Range Filter' },
+    algo2:  { icon: 'NT', name: 'NTB-ScenB [97%WR · Best]', sub: 'Short Straddle — Close-Move Filtered (Scenario B)' },
+    algo3:  { icon: 'NB', name: 'EMA Crossover [41%WR · Ready]', sub: 'EMA 5/20 + RSI Filter + Scanner Score<3.5 — Buy CE/PE' },
+    algo4:  { icon: 'FL', name: 'Flow-NIFTY [73%WR · Low Freq]', sub: 'EMA13 + ATR>0.7% + Vol>1.15x — ATM CE Proxy' },
+    algo5:  { icon: 'VX', name: 'VIX Reversion [61%WR · Ready]', sub: 'India VIX>=19 → ATM CE +2%Tgt/-2%SL Mean Reversion' },
+    algo6:  { icon: 'ST', name: 'SuperTrend Dir. [43%WR · DEV]', sub: 'ST(7,3.0) + ADX>20 — Directional ATM CE/PE' },
+    algo7:  { icon: 'DT', name: 'Dual Thrust [57%WR · Ready]', sub: 'Opening Range Breakout — N-day Range Thresholds' },
+    algo8:  { icon: 'CS', name: 'CPMA Scalper [38%WR · DEV]', sub: 'EMA(20) vs CPMA(21) Crossover — 0.5% SL / 1% Tgt' },
+    algo9:  { icon: 'BS', name: 'Bullish Scanner [55%WR · DEV]', sub: 'Contrarian: Buy CE when Score<=1.5 — Filter for algo3' },
+    algo10: { icon: 'AO', name: 'Awesome Osc. [50%WR · DEV]', sub: 'AO(3,21) + ADX>25 — Directional ATM CE/PE' },
+    algo11: { icon: 'GS', name: 'Gamma Scalping [46%WR · STUDY]', sub: 'Long ATM Straddle + Delta Hedge — Daily Proxy Only' },
+    algo12: { icon: 'DR', name: 'Dip Recovery [30%WR · STUDY]', sub: 'Buy ATM CE on 2% dip — 4% recovery / 50% SL / 5-day hold' },
+    algo13: { icon: 'SR', name: 'Signal Rolling [49%WR · READY]', sub: '3-day consecutive close momentum — ATM CE/PE / 50% SL / 1:2 R:R' },
+    algo14: { icon: 'ML', name: 'ML-RF Classifier [49%WR · READY]', sub: 'RandomForest on RSI/MACD/BB/vol — Predict next-day → ATM CE/PE' },
+    algo15: { icon: 'AS', name: 'Aggregate Score [45%WR · READY]', sub: '9 normalized indicators → dynamic weighted score → vol-adjusted signal. From FreqAI-LSTM crypto project.' },
+    algo16: { icon: 'S4', name: 'NIFTY Scalper (4/5) [94%WR · Intraday]', sub: '5-checklist confluence (VWAP+EMA+ST+RSI+VIX) — 4/5 align → ATM CE/PE. +2%Tgt/-5%SL. Max 5/day.' },
+    algo17: { icon: 'S3', name: 'NIFTY Scalper (3/5) [95%WR · Intraday]', sub: '5-checklist confluence (VWAP+EMA+ST+RSI+VIX) — 3/5 align → ATM CE/PE. +2%Tgt/-5%SL. Max 5/day. Aggressive.' },
+  };
+  const meta = algoMeta[algoId] || algoMeta['algo3'];
+  setEl('algo_icon', meta.icon);
+  setEl('algo_title', meta.name);
+  setEl('algo_subtitle', meta.sub);
+  setEl('cal_title', 'CALENDAR — ' + meta.name.toUpperCase());
+  document.title = 'AlgoTrader — ' + meta.name;
+
+  // Sync header price displays
+  const niftyDetail = document.getElementById('detail_nifty');
+  const vixDetail   = document.getElementById('detail_vix');
+  // Also update detail header on live price load
+  const origLoad = window.loadLivePrice;
+  window.loadLivePrice = async () => {
+    await origLoad?.();
+    const hdrNifty = document.getElementById('hdr_nifty')?.textContent;
+    const hdrVix   = document.getElementById('hdr_vix')?.textContent;
+    if (niftyDetail && hdrNifty) niftyDetail.textContent = hdrNifty;
+    if (vixDetail   && hdrVix)   vixDetail.textContent   = hdrVix;
+    const updated = document.getElementById('hdr_time')?.textContent;
+    setEl('algo_updated', updated || '');
+  };
+});
+
+function setEl(id, val) {
+  const el = document.getElementById(id);
+  if (el) el.textContent = val;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlgoTrader — Settings</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <style>
+    .settings-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 20px; margin-bottom: 16px; }
+    .settings-card h3 { margin: 0 0 12px 0; font-size: 15px; color: var(--text); }
+    .form-row { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; flex-wrap: wrap; }
+    .form-row label { min-width: 140px; font-size: 13px; color: var(--text-dim); }
+    .form-row input[type="text"], .form-row input[type="number"] {
+      flex: 1; min-width: 200px; background: var(--bg); border: 1px solid var(--border);
+      color: var(--text); padding: 8px 12px; border-radius: 6px; font-size: 13px;
+    }
+    .btn { padding: 8px 18px; border-radius: 6px; border: none; font-size: 13px; cursor: pointer; font-weight: 500; }
+    .btn-primary { background: var(--green-light); color: #000; }
+    .btn-danger { background: #ff4444; color: #fff; }
+    .btn-secondary { background: var(--border); color: var(--text); }
+    .btn:hover { opacity: 0.85; }
+    .status-msg { font-size: 12px; margin-left: 8px; }
+    .status-msg.ok { color: var(--green-light); }
+    .status-msg.err { color: #ff4444; }
+    .algo-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .algo-table th, .algo-table td { text-align: left; padding: 8px 6px; font-size: 12px; border-bottom: 1px solid var(--border); }
+    .algo-table th { color: var(--text-dim); font-weight: 500; }
+    .algo-table td { color: var(--text); }
+    .algo-table input[type="number"] { width: 100px; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 4px 8px; border-radius: 4px; font-size: 12px; }
+    .toggle-switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background: #555; border-radius: 20px; transition: .3s; }
+    .toggle-slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background: white; border-radius: 50%; transition: .3s; }
+    .toggle-switch input:checked + .toggle-slider { background: var(--green-light); }
+    .toggle-switch input:checked + .toggle-slider:before { transform: translateX(16px); }
+    .section-divider { border-top: 1px solid var(--border); margin: 24px 0; }
+  </style>
+</head>
+<body>
+
+<!-- ── Top Bar ── -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <a href="/" style="color:var(--text-muted);text-decoration:none;font-size:13px;margin-right:4px">&#8592; Back</a>
+    <div class="dot"></div>
+    AlgoTrader
+  </div>
+  <nav class="algo-tabs" style="border:none;padding:0;margin-left:16px;flex:1">
+    <div class="algo-tab" onclick="window.location.href='/'">Dashboard</div>
+    <div class="algo-tab" onclick="window.location.href='/settings.html'" style="margin-left:auto">
+      <span class="status-dot live"></span> Settings
+    </div>
+  </nav>
+</header>
+
+<!-- ── Main Content ── -->
+<div class="layout" style="padding: 16px; max-width: 1200px; margin: 0 auto;">
+
+  <h2 style="margin: 0 0 16px 0; font-size: 18px; color: var(--text);">Settings</h2>
+
+  <!-- Dhan Token -->
+  <div class="settings-card">
+    <h3>Dhan API Token</h3>
+    <p style="font-size: 12px; color: var(--text-dim); margin: 0 0 12px 0;">
+      Paste your daily Dhan Auth (JWT) token here. Used for option chain with Greeks + intraday candle data.
+    </p>
+    <div class="form-row">
+      <label>Auth Token</label>
+      <input type="text" id="dhan_token_input" placeholder="eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9..." style="font-family: monospace;">
+      <button class="btn btn-primary" onclick="saveDhanToken()">Save Token</button>
+      <button class="btn btn-secondary" onclick="testDhanToken()">Test</button>
+      <span id="token_status" class="status-msg"></span>
+    </div>
+    <div class="form-row" style="margin-top: 6px;">
+      <label>Current</label>
+      <span id="current_token_display" style="font-size: 12px; color: var(--text-dim); font-family: monospace;">(not set)</span>
+    </div>
+  </div>
+
+  <!-- Algo Management -->
+  <div class="settings-card">
+    <h3>Algo Management</h3>
+    <p style="font-size: 12px; color: var(--text-dim); margin: 0 0 12px 0;">
+      Capital, enable/disable, and reset per algo. Reset = close all open positions + clear P&L on next cycle.
+    </p>
+    <table class="algo-table">
+      <thead>
+        <tr>
+          <th>Algo</th>
+          <th>Capital (&#8377;)</th>
+          <th>Enabled</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="algo_settings_body">
+        <tr><td colspan="4" style="text-align:center; color:var(--text-dim)">Loading...</td></tr>
+      </tbody>
+    </table>
+    <div style="margin-top: 12px;">
+      <button class="btn btn-primary" onclick="saveAllAlgoSettings()">Save All Changes</button>
+      <span id="algo_save_status" class="status-msg"></span>
+    </div>
+  </div>
+
+  <!-- Dhan Quick Test -->
+  <div class="settings-card">
+    <h3>Quick API Test</h3>
+    <div style="display:flex; gap: 12px; flex-wrap: wrap;">
+      <button class="btn btn-secondary" onclick="testCandles()">Test 5m Candles</button>
+      <button class="btn btn-secondary" onclick="testOptionChain()">Test Option Chain</button>
+    </div>
+    <pre id="test_output" style="background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 12px; margin-top: 10px; font-size: 11px; color: var(--text-dim); max-height: 300px; overflow: auto; white-space: pre-wrap;"></pre>
+  </div>
+
+</div>
+
+<script>
+// ── Load current settings ──
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    const data = await res.json();
+    document.getElementById('current_token_display').textContent = data.dhan_token_masked || '(not set)';
+    renderAlgoTable(data.algos || {});
+  } catch (e) {
+    console.error('Failed to load settings:', e);
+  }
+}
+
+// ── Algo metadata (matches config.py) ──
+const ALGO_META = {
+  algo1:  { name: 'RD-Straddle',      tag: '58%WR · Stable',    status: 'READY' },
+  algo2:  { name: 'NTB-ScenB',        tag: '97%WR · Best',     status: 'AUDIT' },
+  algo3:  { name: 'EMA Crossover',    tag: '39%WR · Developing', status: 'READY' },
+  algo4:  { name: 'Flow-NIFTY',       tag: '73%WR · Low Freq', status: 'DEVELOPING' },
+  algo5:  { name: 'VIX Reversion',    tag: '61%WR · Ready',    status: 'READY' },
+  algo6:  { name: 'SuperTrend Dir.',  tag: '43%WR · High DD',  status: 'DEVELOPING' },
+  algo7:  { name: 'Dual Thrust',      tag: '57%WR · Viable',   status: 'READY' },
+  algo8:  { name: 'CPMA Scalper',     tag: '38%WR · Developing', status: 'DEVELOPING' },
+  algo9:  { name: 'Bullish Scanner',  tag: '55%WR · Filter',   status: 'DEVELOPING' },
+  algo10: { name: 'Awesome Osc.',     tag: '50%WR · Best Bal', status: 'DEVELOPING' },
+  algo11: { name: 'Gamma Scalp',      tag: '46%WR · Study',    status: 'STUDY' },
+  algo12: { name: 'Dip Recovery',     tag: '30%WR · Study',    status: 'STUDY' },
+  algo13: { name: 'Signal Rolling',   tag: '49%WR · Viable',   status: 'READY' },
+  algo14: { name: 'ML-RF Classifier', tag: '49%WR · Viable',   status: 'READY' },
+  algo15: { name: 'Aggregate Score',  tag: '45%WR · Viable',   status: 'READY' },
+  algo16: { name: 'NIFTY Scalper 4/5', tag: '94%WR · Intraday',  status: 'READY' },
+  algo17: { name: 'NIFTY Scalper 3/5', tag: '95%WR · Intraday',  status: 'READY' },
+};
+
+function renderAlgoTable(algos) {
+  const tbody = document.getElementById('algo_settings_body');
+  tbody.innerHTML = '';
+  Object.keys(ALGO_META).forEach(id => {
+    const meta = ALGO_META[id];
+    const s = algos[id] || {};
+    const capital = s.capital !== undefined ? s.capital : 200000;
+    const enabled = s.enabled !== false;
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><strong>${meta.name}</strong><br><span style="font-size:10px;color:var(--text-dim)">${meta.tag} · ${meta.status}</span></td>
+      <td><input type="number" id="cap_${id}" value="${capital}" min="0" step="1000"></td>
+      <td>
+        <label class="toggle-switch">
+          <input type="checkbox" id="en_${id}" ${enabled ? 'checked' : ''}>
+          <span class="toggle-slider"></span>
+        </label>
+      </td>
+      <td>
+        <button class="btn btn-danger" style="padding:4px 10px;font-size:11px" onclick="resetAlgo('${id}')">Reset</button>
+        <span id="rst_${id}" class="status-msg"></span>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+async function saveDhanToken() {
+  const token = document.getElementById('dhan_token_input').value.trim();
+  if (!token) {
+    showStatus('token_status', 'Please enter a token', 'err');
+    return;
+  }
+  try {
+    const res = await fetch('/api/settings/dhan-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    });
+    const data = await res.json();
+    showStatus('token_status', 'Saved: ' + data.token_masked, 'ok');
+    document.getElementById('current_token_display').textContent = data.token_masked;
+    document.getElementById('dhan_token_input').value = '';
+  } catch (e) {
+    showStatus('token_status', 'Error: ' + e.message, 'err');
+  }
+}
+
+async function testDhanToken() {
+  showStatus('token_status', 'Testing...', '');
+  try {
+    const res = await fetch('/api/settings/dhan-token');
+    const data = await res.json();
+    const ok = data.test && data.test.option_chain === 'OK';
+    showStatus('token_status',
+      ok ? `Token valid | OC=${data.test.option_chain_strikes} strikes` : 'Token invalid/expired',
+      ok ? 'ok' : 'err');
+  } catch (e) {
+    showStatus('token_status', 'Test failed: ' + e.message, 'err');
+  }
+}
+
+async function saveAllAlgoSettings() {
+  const updates = [];
+  Object.keys(ALGO_META).forEach(id => {
+    const cap = parseInt(document.getElementById('cap_' + id).value) || 200000;
+    const en = document.getElementById('en_' + id).checked;
+    updates.push(
+      fetch('/api/settings/algo/' + id, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ capital: cap, enabled: en }),
+      })
+    );
+  });
+  try {
+    await Promise.all(updates);
+    showStatus('algo_save_status', 'All settings saved', 'ok');
+  } catch (e) {
+    showStatus('algo_save_status', 'Error: ' + e.message, 'err');
+  }
+}
+
+async function resetAlgo(algoId) {
+  if (!confirm('Reset algo ' + algoId + '? This will close all open positions and clear P&L on the next cycle.')) return;
+  try {
+    const res = await fetch('/api/settings/algo/' + algoId + '/reset', { method: 'POST' });
+    const data = await res.json();
+    showStatus('rst_' + algoId, 'Reset requested', 'ok');
+    setTimeout(() => { showStatus('rst_' + algoId, '', ''); }, 3000);
+  } catch (e) {
+    showStatus('rst_' + algoId, 'Error', 'err');
+  }
+}
+
+async function testCandles() {
+  const out = document.getElementById('test_output');
+  out.textContent = 'Fetching 5m candles...';
+  try {
+    const res = await fetch('/api/dhan/candles?interval=5');
+    const data = await res.json();
+    out.textContent = JSON.stringify(data, null, 2);
+  } catch (e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
+async function testOptionChain() {
+  const out = document.getElementById('test_output');
+  out.textContent = 'Fetching option chain...';
+  try {
+    const res = await fetch('/api/dhan/option-chain');
+    const data = await res.json();
+    out.textContent = JSON.stringify(data, null, 2);
+  } catch (e) {
+    out.textContent = 'Error: ' + e.message;
+  }
+}
+
+function showStatus(id, msg, type) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status-msg ' + (type || '');
+}
+
+// Load on page load
+document.addEventListener('DOMContentLoaded', loadSettings);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project runtime
+.server.pid
+server.log
+*.log
+
+# Data (generated)
+data/paper/
+data/trades/
+
+# Secrets / config
+.env
+*.env
+settings.json
+
+# Temporary
+temp/
+*.tmp

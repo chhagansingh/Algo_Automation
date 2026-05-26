@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlgoTrader — Dashboard</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ── Top Bar ── -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="dot"></div>
+    AlgoTrader
+  </div>
+  <nav class="algo-tabs" style="border:none;padding:0;margin-left:16px;flex:1;overflow-x:auto">
+    <div class="algo-tab active" onclick="window.location.href='/'">
+      <span class="status-dot live"></span> Dashboard
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo1'">
+      <span class="status-dot" id="tab_dot_algo1"></span> RD-Straddle
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo2'">
+      <span class="status-dot" id="tab_dot_algo2"></span> NTB-ScenB
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo3'">
+      <span class="status-dot" id="tab_dot_algo3"></span> EMA-Cross
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo4'">
+      <span class="status-dot" id="tab_dot_algo4"></span> Flow-NIFTY
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo5'">
+      <span class="status-dot" id="tab_dot_algo5"></span> VIX-Rev
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo6'">
+      <span class="status-dot" id="tab_dot_algo6"></span> SuperTrend
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo7'">
+      <span class="status-dot" id="tab_dot_algo7"></span> Dual-Thrust
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo8'">
+      <span class="status-dot" id="tab_dot_algo8"></span> CPMA
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo9'">
+      <span class="status-dot" id="tab_dot_algo9"></span> Scanner
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo10'">
+      <span class="status-dot" id="tab_dot_algo10"></span> Awesome-O
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo11'">
+      <span class="status-dot" id="tab_dot_algo11"></span> Gamma-S
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo12'">
+      <span class="status-dot" id="tab_dot_algo12"></span> Dip-Recovery
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo13'">
+      <span class="status-dot" id="tab_dot_algo13"></span> Signal-Rolling
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo14'">
+      <span class="status-dot" id="tab_dot_algo14"></span> ML-RF
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo15'">
+      <span class="status-dot" id="tab_dot_algo15"></span> Agg-Score
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo16'">
+      <span class="status-dot" id="tab_dot_algo16"></span> Scalper-4/5
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/algo/algo17'">
+      <span class="status-dot" id="tab_dot_algo17"></span> Scalper-3/5
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/settings.html'" style="margin-left:auto">
+      Settings
+    </div>
+    <div class="algo-tab" onclick="window.location.href='/logs.html'">
+      Logs
+    </div>
+  </nav>
+  <div class="topbar-live">
+    <span class="nifty-price" id="live_nifty">--</span>
+    <span class="vix" id="live_vix"></span>
+    <span style="font-size:11px;color:var(--text-dim)" id="live_time"></span>
+  </div>
+</header>
+
+<!-- ── Main Layout ── -->
+<div class="layout">
+
+  <!-- Main Content -->
+  <div class="main-content">
+
+    <!-- Algo Summary Cards -->
+    <div class="card-title" style="margin-bottom:10px">ALGO STATUS</div>
+    <div class="algo-summary-grid" id="algo_cards_grid">
+      <!-- rendered by dashboard.js -->
+      <div class="algo-summary-card" style="opacity:0.4">
+        <div style="height:80px;display:flex;align-items:center;justify-content:center">
+          <div class="spinner"></div>
+        </div>
+      </div>
+      <div class="algo-summary-card" style="opacity:0.4"></div>
+      <div class="algo-summary-card" style="opacity:0.4"></div>
+    </div>
+
+    <!-- Backtest Panel -->
+    <div id="master_backtest"></div>
+
+    <!-- Today's Trades (master) -->
+    <div class="card" style="margin-top:4px">
+      <div class="section-header">
+        <h3>Recent Trades</h3>
+        <span class="text-dim" style="font-size:11px;margin-left:auto">Click calendar date to filter</span>
+      </div>
+      <div id="recent_trades_note" style="padding:8px 0;font-size:12px;color:var(--text-muted)">
+        Select a date on the calendar to view trades for that day.
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+
+    <!-- P&L Summary -->
+    <div class="card">
+      <div class="card-title">P&L SUMMARY — ALL ALGOS</div>
+      <div id="pnl_summary_master">
+        <div class="pnl-summary-grid">
+          <div class="pnl-card"><div class="period">1 YEAR</div><div class="pnl-pct text-muted">—</div></div>
+          <div class="pnl-card"><div class="period">6 MONTHS</div><div class="pnl-pct text-muted">—</div></div>
+          <div class="pnl-card"><div class="period">3 MONTHS</div><div class="pnl-pct text-muted">—</div></div>
+          <div class="pnl-card"><div class="period">1 MONTH</div><div class="pnl-pct text-muted">—</div></div>
+          <div class="pnl-card today"><div class="period">TODAY</div><div class="pnl-pct">₹0</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Portfolio Exposure -->
+    <div class="card">
+      <div class="card-title">PORTFOLIO EXPOSURE</div>
+      <div class="exposure-grid">
+        <div class="exposure-item">
+          <div class="e-label">Daily P&L</div>
+          <div class="e-value" id="master_daily_pnl">₹0</div>
+        </div>
+        <div class="exposure-item">
+          <div class="e-label">Positions</div>
+          <div class="e-value" id="master_positions">0</div>
+        </div>
+        <div class="exposure-item">
+          <div class="e-label">Algos Active</div>
+          <div class="e-value" id="master_active">0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="card">
+      <div class="card-title">CALENDAR — ALL ALGOS</div>
+      <div id="master_calendar"></div>
+    </div>
+
+  </div><!-- /sidebar -->
+
+</div><!-- /layout -->
+
+<!-- Date Drawer -->
+<div class="date-drawer-overlay" id="date_drawer_overlay" onclick="closeDateDrawer()"></div>
+<div class="date-drawer" id="date_drawer">
+  <div class="date-drawer-header">
+    <div class="d-title" id="drawer_title">—</div>
+    <button class="date-drawer-close" onclick="closeDateDrawer()">✕</button>
+  </div>
+  <div id="drawer_body"></div>
+</div>
+
+<script src="/static/js/calendar.js"></script>
+<script src="/static/js/charts.js"></script>
+<script src="/static/js/backtest.js"></script>
+<script src="/static/js/dashboard.js"></script>
+
+</body>
+</html>
